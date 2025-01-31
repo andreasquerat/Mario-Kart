@@ -4,7 +4,7 @@
 PlayerSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 28
-  productGUID: d1e782d057a452f4194c58233bb56e9c
+  productGUID: 3781b7421ea59684e950b472d8ae1ff7
   AndroidProfiler: 0
   AndroidFilterTouchesWhenObscured: 0
   AndroidEnableSustainedPerformanceMode: 0
@@ -13,7 +13,7 @@ PlayerSettings:
   useOnDemandResources: 0
   accelerometerFrequency: 60
   companyName: DefaultCompany
-  productName: Mario Kart
+  productName: MarioKart
   defaultCursor: {fileID: 0}
   cursorHotspot: {x: 0, y: 0}
   m_SplashScreenBackgroundColor: {r: 0.13725491, g: 0.12156863, b: 0.1254902, a: 1}
@@ -852,14 +852,14 @@ PlayerSettings:
   editorAssembliesCompatibilityLevel: 1
   m_RenderingPath: 1
   m_MobileRenderingPath: 1
-  metroPackageName: Mario Kart
+  metroPackageName: MarioKart
   metroPackageVersion: 
   metroCertificatePath: 
   metroCertificatePassword: 
   metroCertificateSubject: 
   metroCertificateIssuer: 
   metroCertificateNotAfter: 0000000000000000
-  metroApplicationDescription: Mario Kart
+  metroApplicationDescription: MarioKart
   wsaImages: {}
   metroTileShortName: 
   metroTileShowName: 0
@@ -930,10 +930,10 @@ PlayerSettings:
   captureStartupLogs: {}
   activeInputHandler: 2
   windowsGamepadBackendHint: 0
-  cloudProjectId: ab9b1c6c-2d0a-440d-8b15-0cf15333a071
+  cloudProjectId: 0c6b4da8-1164-4059-8f4d-c461b2c62253
   framebufferDepthMemorylessMode: 0
   qualitySettingsNames: []
-  projectName: Mario Kart
+  projectName: MarioKart
   organizationId: laoil-logan
   cloudEnabled: 0
   legacyClampBlendShapeWeights: 0
