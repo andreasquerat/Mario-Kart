@@ -4,10 +4,13 @@ using UnityEngine.UIElements;
 
 public class CarControler : MonoBehaviour
 {
+
+    [SerializeField]
+    private LayerMask _layerMask;
     [SerializeField]
     private Rigidbody _rb;
 
-    private float _speed, _accelerationLerpInterpolator; 
+    private float _speed, _accelerationLerpInterpolator, _rotationInput; 
     [SerializeField]
     private float _speedMax = 3, _accelerationFactor, _rotationSpeed = 0.5f;
     private bool _isAccelerating;
@@ -20,17 +23,14 @@ public class CarControler : MonoBehaviour
         
     }
 
+    private float _terrainSpeedVariator;
+
     void Update()
     {
 
-        if (Input.GetKey(KeyCode.LeftArrow))
-        {
-            transform.eulerAngles += Vector3.down*_rotationSpeed*Time.deltaTime;
-        }
-        if (Input.GetKey(KeyCode.RightArrow))
-        {
-            transform.eulerAngles += Vector3.up*_rotationSpeed*Time.deltaTime;
-        }
+
+        _rotationInput = Input.GetAxis("Horizontal");
+
         if (Input.GetKeyDown(KeyCode.Space))
         {
             _isAccelerating = true;
@@ -40,6 +40,23 @@ public class CarControler : MonoBehaviour
             _isAccelerating = false;
         }
 
+        if (Physics.Raycast(transform.position, transform.up * -1, out var info, 1, _layerMask))
+        {
+
+            Terrain terrainBellow = info.transform.GetComponent<Terrain>();
+            if (terrainBellow != null)
+            {
+                _terrainSpeedVariator = terrainBellow.speedVariator;
+            }
+            else
+            {
+                _terrainSpeedVariator = 1;
+            }
+        }
+        else
+        {
+            _terrainSpeedVariator = 1;
+        }
 
         //var xAngle = transform.eulerAngles.x;
         //if (xAngle>180)
@@ -55,7 +72,7 @@ public class CarControler : MonoBehaviour
 
     private void FixedUpdate()
     {
-
+        
         if (_isAccelerating)
         {
             _accelerationLerpInterpolator += _accelerationFactor;
@@ -67,8 +84,9 @@ public class CarControler : MonoBehaviour
 
         _accelerationLerpInterpolator = Mathf.Clamp01(_accelerationLerpInterpolator);
 
-        _speed = _accelerationCurve.Evaluate(_accelerationLerpInterpolator)*_speedMax;
+        _speed = _accelerationCurve.Evaluate(_accelerationLerpInterpolator)*_speedMax*_terrainSpeedVariator;
 
+        transform.eulerAngles += Vector3.up * _rotationSpeed * Time.deltaTime*_rotationInput;
         _rb.MovePosition(transform.position+transform.forward*_speed*Time.fixedDeltaTime);
     }
 }
