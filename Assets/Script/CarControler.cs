@@ -1,4 +1,4 @@
-using Unity.VisualScripting;
+﻿using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -24,7 +24,9 @@ public class CarControler : MonoBehaviour
     }
 
     private float _terrainSpeedVariator;
-
+    private bool _isBoosting = false;
+    private float _boostMultiplier = 1f;
+    private float _boostEndTime = 0f;
     void Update()
     {
 
@@ -66,9 +68,21 @@ public class CarControler : MonoBehaviour
         //}
 
         //var yAngle = transform.eulerAngles.y;
+
         //var zAngle = 0;
+
         //transform.eulerAngles = new Vector3(xAngle,yAngle,zAngle);
+        // Gestion du temps de boost
+        if (_isBoosting && Time.time > _boostEndTime)
+        {
+            _isBoosting = false;
+            _boostMultiplier = 1f;
+        }
     }
+
+
+
+
 
     private void FixedUpdate()
     {
@@ -85,8 +99,16 @@ public class CarControler : MonoBehaviour
         _accelerationLerpInterpolator = Mathf.Clamp01(_accelerationLerpInterpolator);
 
         _speed = _accelerationCurve.Evaluate(_accelerationLerpInterpolator)*_speedMax*_terrainSpeedVariator;
-
+        _speed = _accelerationCurve.Evaluate(_accelerationLerpInterpolator) * _speedMax * _terrainSpeedVariator * _boostMultiplier;
         transform.eulerAngles += Vector3.up * _rotationSpeed * Time.deltaTime*_rotationInput;
         _rb.MovePosition(transform.position+transform.forward*_speed*Time.fixedDeltaTime);
     }
+    public void ApplyBoost(float boostAmount, float duration)
+    {
+        _boostMultiplier = boostAmount;
+        _isBoosting = true;
+        _boostEndTime = Time.time + duration;
+    }
+
 }
+
