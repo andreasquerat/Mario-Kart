@@ -62,10 +62,10 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Assets\Script\Terrain.cs" />
-    <Compile Include="Assets\Script\TremplinBoost.cs" />
     <Compile Include="Assets\TutorialInfo\Scripts\Readme.cs" />
-    <Compile Include="Assets\Script\CarControler.cs" />
-    <Compile Include="Assets\Script\RaycastDetecting.cs" />
+    <Compile Include="Assets\Script\PlayerController.cs" />
+    <Compile Include="Assets\Script\KartInputHandler.cs" />
+    <Compile Include="Assets\Script\CarController.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Assets\TextMesh Pro\Shaders\TMPro.cginc" />
