@@ -2,61 +2,102 @@ using UnityEngine;
 
 public class KartMovement : MonoBehaviour
 {
-    [Header("Mouvement")]
-    [SerializeField] private float acceleration = 5f; // Puissance d'acc�l�ration
-    [SerializeField] private float maxSpeed = 10f; // Vitesse max du Kart
-    [SerializeField] private float rotationSpeed = 100f; // Vitesse de rotation
+    [Header("Physics & Speed Settings")]
+    [SerializeField] private float maxSpeed = 15f; // Vitesse maximale
+    [SerializeField] private float accelerationRate = 5f; // Accélération par seconde
+    [SerializeField] private float decelerationRate = 3f; // Ralentissement par seconde
+    [SerializeField] private float turnSpeed = 100f; // Vitesse de rotation
+    [SerializeField] private float turnPenalty = 0.95f; // Réduction de vitesse en tournant
 
-    private float currentSpeed = 0f; // Vitesse actuelle du kart
-    private Rigidbody rb; // R�f�rence au Rigidbody du kart
+    private Rigidbody rb;
+    private float currentSpeed = 0f;
+    private float accelerationProgress = 0f; // Suivi de l'accélération progressive
+    private bool isFrozen = false;
+    private float originalMaxSpeed;
+    private float boostMultiplier = 1f;
+    private bool isInvincible = false;
 
     void Start()
     {
-        rb = GetComponent<Rigidbody>(); // R�cup�re le Rigidbody attach� au Kart
-        rb.freezeRotation = true; // Emp�che le kart de se renverser
+        rb = GetComponent<Rigidbody>();
+        originalMaxSpeed = maxSpeed;
     }
-
+    public void SetInvincible(bool state)
+    {
+        isInvincible = state;
+    }
+    public void ModifySpeed(float modifier)
+    {
+        if (!isInvincible) // Si on n'a pas l'étoile, on applique les effets du terrain
+        {
+            maxSpeed *= modifier;
+        }
+        {
+            maxSpeed = originalMaxSpeed * modifier;
+        }
+    }
+    public void ApplyBoost(float multiplier)
+    {
+        boostMultiplier = multiplier;
+        maxSpeed *= boostMultiplier; // Augmente la vitesse
+    }
+    public void ResetSpeed()
+    {
+        maxSpeed = originalMaxSpeed;
+        boostMultiplier = 1f;
+        isFrozen = false;
+    }
+    public void FreezeSpeed()
+    {
+        isFrozen = true;
+        rb.linearVelocity = rb.linearVelocity; // On garde la vitesse actuelle
+    }
+ 
     void Update()
     {
-        HandleMovement();
-        HandleRotation();
+        HandleAcceleration();
+        HandleTurning();
     }
 
-    private void HandleMovement()
+    private void FixedUpdate()
     {
-        // R�cup�re l'entr�e verticale (fl�che haut/bas)
-        float moveInput = Input.GetAxis("Vertical");
-
-        if (moveInput > 0) // Acc�l�ration
-        {
-            currentSpeed += acceleration * Time.deltaTime;
-        }
-        else if (moveInput < 0) // Marche arri�re
-        {
-            currentSpeed -= acceleration * Time.deltaTime;
-        }
-        else // Ralentissement naturel
-        {
-            currentSpeed *= 0.98f; // Ajoute une l�g�re friction
-        }
-
-        // Clamp la vitesse pour �viter de d�passer les limites
-        currentSpeed = Mathf.Clamp(currentSpeed, -maxSpeed / 2, maxSpeed);
-
-        // Applique le mouvement au Rigidbody
-        rb.linearVelocity = transform.forward * currentSpeed;
+        MoveKart();
     }
 
-    private void HandleRotation()
+    void HandleAcceleration()
     {
-        // R�cup�re l'entr�e horizontale (fl�che gauche/droite)
-        float turnInput = Input.GetAxis("Horizontal");
+        bool isAccelerating = Input.GetKey(KeyCode.UpArrow);
 
-        // Rotation uniquement si le kart bouge
-        if (Mathf.Abs(currentSpeed) > 0.1f)
+        if (isAccelerating)
         {
-            float turn = turnInput * rotationSpeed * Time.deltaTime * Mathf.Sign(currentSpeed);
-            transform.Rotate(Vector3.up * turn);
+            // On accélère progressivement jusqu'à la vitesse max
+            accelerationProgress += Time.deltaTime * accelerationRate;
+            accelerationProgress = Mathf.Clamp(accelerationProgress, 0f, maxSpeed);
         }
+        else
+        {
+            // Si on relâche l'accélérateur, on ralentit doucement
+            accelerationProgress -= Time.deltaTime * decelerationRate;
+            accelerationProgress = Mathf.Clamp(accelerationProgress, 0f, maxSpeed);
+        }
+    }
+
+    void HandleTurning()
+    {
+        float turnInput = Input.GetAxis("Horizontal"); // Flèches gauche/droite
+
+        if (turnInput != 0)
+        {
+            // Réduction de la vitesse si on tourne brusquement
+            accelerationProgress *= turnPenalty;
+        }
+
+        transform.Rotate(Vector3.up * turnInput * turnSpeed * Time.deltaTime);
+    }
+
+    void MoveKart()
+    {
+        // Appliquer le mouvement vers l'avant
+        rb.linearVelocity = transform.forward * accelerationProgress;
     }
 }

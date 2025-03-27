@@ -62,8 +62,11 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Assets\Script\KartCamera.cs" />
+    <Compile Include="Assets\Script\KartItem.cs" />
     <Compile Include="Assets\TutorialInfo\Scripts\Readme.cs" />
     <Compile Include="Assets\Script\KartMovement.cs" />
+    <Compile Include="Assets\Script\ItemBox.cs" />
+    <Compile Include="Assets\Script\TerrainEffect.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Assets\TextMesh Pro\Shaders\TMPro.cginc" />
