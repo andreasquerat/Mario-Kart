@@ -1,65 +1,83 @@
+﻿using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
-using System.Collections;
 
 public class KartItem : MonoBehaviour
 {
-    private enum ItemType { None, Mushroom, Star } // Types d'objets
-    private ItemType currentItem = ItemType.None;
-
-    [Header("Boost Settings")]
-    [SerializeField] private float mushroomBoost = 2f; // Multiplicateur de vitesse
-    [SerializeField] private float starDuration = 10f; // Dur�e de l'invincibilit�
-
-    private KartMovement kartMovement;
-    private bool isStarActive = false;
-
-    void Start()
-    {
-        kartMovement = GetComponent<KartMovement>();
-    }
+    public ItemUI itemUI; // UI pour afficher l'item
+    private ItemEffect currentItem; // L'item en stock
+    private bool isInvincible = false;
 
     void Update()
     {
-        if (Input.GetKeyDown(KeyCode.E)) // Touche pour utiliser l'objet
+        if (Input.GetKeyDown(KeyCode.E)) // Utiliser l'item avec E (change si nécessaire)
         {
             UseItem();
         }
     }
 
-    public void CollectItem(string itemName)
+    public void ReceiveItem(ItemEffect item)
     {
-        if (currentItem == ItemType.None) // Ne prend qu'un objet � la fois
-        {
-            if (itemName == "Mushroom") currentItem = ItemType.Mushroom;
-            else if (itemName == "Star") currentItem = ItemType.Star;
-        }
+        if (currentItem != null) return; // Empêche d'avoir plusieurs items en même temps
+
+        currentItem = item;
+        itemUI.SetItem(item);
     }
 
-    private void UseItem()
+    public void UseItem()
     {
-        if (currentItem == ItemType.Mushroom)
-        {
-            kartMovement.ApplyBoost(mushroomBoost);
-            currentItem = ItemType.None; // Supprime l'objet apr�s usage
-        }
-        else if (currentItem == ItemType.Star)
-        {
-            StartCoroutine(ActivateStar());
-            currentItem = ItemType.None;
-        }
+        if (currentItem == null) return;
+
+        Debug.Log($" Utilisation de l'item : {currentItem.itemType}");
+
+        currentItem.ActivateEffect(this); // Appelle la méthode propre à l'item
+
+        itemUI.ClearItem(); // Supprime l'affichage de l'item
+        currentItem = null; // Vide l'item en stock
     }
 
-    private IEnumerator ActivateStar()
+    // 🟢 Méthode rendue publique pour StarItem
+    public void SetInvincible(float duration)
     {
-        isStarActive = true;
-        kartMovement.SetInvincible(true); // Active l'invincibilit�
-        yield return new WaitForSeconds(starDuration);
-        kartMovement.SetInvincible(false);
-        isStarActive = false;
+        if (isInvincible) return; // Empêche les doubles effets
+        StartCoroutine(InvincibilityRoutine(duration));
     }
 
-    public bool IsStarActive()
+    private IEnumerator InvincibilityRoutine(float duration)
     {
-        return isStarActive;
+        isInvincible = true;
+        Debug.Log("✨ Invincible !");
+
+        float elapsedTime = 0f;
+        Renderer kartRenderer = GetComponent<Renderer>();
+
+        while (elapsedTime < duration)
+        {
+            kartRenderer.material.color = new Color(Random.value, Random.value, Random.value);
+            yield return new WaitForSeconds(0.2f);
+            elapsedTime += 0.2f;
+        }
+
+        kartRenderer.material.color = Color.white;
+        isInvincible = false;
+        Debug.Log("💀 Fin de l'invincibilité !");
+    }
+
+    // 🟢 Méthode rendue publique pour MushroomItem
+    public IEnumerator ActivateBoost()
+    {
+        Rigidbody rb = GetComponent<Rigidbody>();
+        if (rb == null) yield break;
+
+        Debug.Log("🚀 Boost activé !");
+        float boostForce = 20f;
+        float duration = 3f;
+
+        rb.AddForce(transform.forward * boostForce, ForceMode.VelocityChange);
+
+        yield return new WaitForSeconds(duration); // Attendre la durée du boost
+
+        rb.linearVelocity = Vector3.zero; // Arrêter le boost après le temps imparti
+        Debug.Log("🛑 Fin du boost !");
     }
 }

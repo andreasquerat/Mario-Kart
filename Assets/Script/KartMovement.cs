@@ -1,103 +1,105 @@
+using System.Collections;
 using UnityEngine;
 
 public class KartMovement : MonoBehaviour
 {
-    [Header("Physics & Speed Settings")]
-    [SerializeField] private float maxSpeed = 15f; // Vitesse maximale
-    [SerializeField] private float accelerationRate = 5f; // Accélération par seconde
-    [SerializeField] private float decelerationRate = 3f; // Ralentissement par seconde
-    [SerializeField] private float turnSpeed = 100f; // Vitesse de rotation
-    [SerializeField] private float turnPenalty = 0.95f; // Réduction de vitesse en tournant
+    public string horizontalInput = "Horizontal"; // Défini dans l'Inspector
+    public string verticalInput = "Vertical"; // Défini dans l'Inspector
+    public KeyCode driftKey = KeyCode.LeftShift; // Touche pour drifter
+    public KeyCode itemKey = KeyCode.E; // Touche pour utiliser l'item
+
+    public float maxSpeed = 10f;
+    public float acceleration = 5f;
+    public float turnSpeed = 100f;
+    private float currentSpeed = 0f;
+    private bool isFrozen = false;
+    private bool isInvincible = false;
+    private bool isDrifting = false;
 
     private Rigidbody rb;
-    private float currentSpeed = 0f;
-    private float accelerationProgress = 0f; // Suivi de l'accélération progressive
-    private bool isFrozen = false;
-    private float originalMaxSpeed;
-    private float boostMultiplier = 1f;
-    private bool isInvincible = false;
+    private float originalTurnSpeed;
 
-    void Start()
+    private void Start()
     {
         rb = GetComponent<Rigidbody>();
-        originalMaxSpeed = maxSpeed;
+        rb.isKinematic = false;
+        rb.constraints = RigidbodyConstraints.FreezeRotationX | RigidbodyConstraints.FreezeRotationZ;
+        originalTurnSpeed = turnSpeed; // Sauvegarde la vitesse de rotation de base
     }
-    public void SetInvincible(bool state)
+
+    private void Update()
     {
-        isInvincible = state;
-    }
-    public void ModifySpeed(float modifier)
-    {
-        if (!isInvincible) // Si on n'a pas l'étoile, on applique les effets du terrain
+        if (!isFrozen)
         {
-            maxSpeed *= modifier;
+            float moveInput = Input.GetAxis(verticalInput);
+            Debug.Log(moveInput);
+            float turnInput = Input.GetAxis(horizontalInput);
+            currentSpeed += moveInput * acceleration * Time.deltaTime;
+            currentSpeed = Mathf.Clamp(currentSpeed, 0, maxSpeed);
+
+            transform.Rotate(0, turnInput * turnSpeed * Time.deltaTime, 0);
+
+            // Gestion du drift
+            if (Input.GetKeyDown(driftKey) && moveInput > 0)
+            {
+                StartCoroutine(Drift());
+            }
         }
-        {
-            maxSpeed = originalMaxSpeed * modifier;
-        }
-    }
-    public void ApplyBoost(float multiplier)
-    {
-        boostMultiplier = multiplier;
-        maxSpeed *= boostMultiplier; // Augmente la vitesse
-    }
-    public void ResetSpeed()
-    {
-        maxSpeed = originalMaxSpeed;
-        boostMultiplier = 1f;
-        isFrozen = false;
-    }
-    public void FreezeSpeed()
-    {
-        isFrozen = true;
-        rb.linearVelocity = rb.linearVelocity; // On garde la vitesse actuelle
-    }
- 
-    void Update()
-    {
-        HandleAcceleration();
-        HandleTurning();
     }
 
     private void FixedUpdate()
     {
-        MoveKart();
+        rb.linearVelocity = transform.forward * currentSpeed;
     }
 
-    void HandleAcceleration()
+    public void ApplyBoost(float amount, float duration)
     {
-        bool isAccelerating = Input.GetKey(KeyCode.UpArrow);
-
-        if (isAccelerating)
-        {
-            // On accélère progressivement jusqu'à la vitesse max
-            accelerationProgress += Time.deltaTime * accelerationRate;
-            accelerationProgress = Mathf.Clamp(accelerationProgress, 0f, maxSpeed);
-        }
-        else
-        {
-            // Si on relâche l'accélérateur, on ralentit doucement
-            accelerationProgress -= Time.deltaTime * decelerationRate;
-            accelerationProgress = Mathf.Clamp(accelerationProgress, 0f, maxSpeed);
-        }
+        StartCoroutine(BoostCoroutine(amount, duration));
     }
 
-    void HandleTurning()
+    private IEnumerator BoostCoroutine(float amount, float duration)
     {
-        float turnInput = Input.GetAxis("Horizontal"); // Flèches gauche/droite
-
-        if (turnInput != 0)
-        {
-            // Réduction de la vitesse si on tourne brusquement
-            accelerationProgress *= turnPenalty;
-        }
-
-        transform.Rotate(Vector3.up * turnInput * turnSpeed * Time.deltaTime);
+        float originalSpeed = maxSpeed;
+        maxSpeed += amount;
+        yield return new WaitForSeconds(duration);
+        maxSpeed = originalSpeed;
     }
 
-    void MoveKart()
+    public void SetFrozen(bool state)
     {
-        // Appliquer le mouvement vers l'avant
-        rb.linearVelocity = transform.forward * accelerationProgress;
+        isFrozen = state;
+    }
+
+    public void SetInvincible(float duration)
+    {
+        StartCoroutine(InvincibilityCoroutine(duration));
+    }
+
+    private IEnumerator InvincibilityCoroutine(float duration)
+    {
+        isInvincible = true;
+        yield return new WaitForSeconds(duration);
+        isInvincible = false;
+    }
+
+    public bool IsInvincible()
+    {
+        return isInvincible;
+    }
+
+    private IEnumerator Drift()
+    {
+        isDrifting = true;
+        Debug.Log("🔥 Drift activé !");
+
+        turnSpeed *= 1.5f; // Augmente la rotation
+        rb.linearDamping = 0.5f; // Réduit le frottement
+
+        yield return new WaitForSeconds(1f); // Durée du drift
+
+        turnSpeed = originalTurnSpeed;
+        rb.linearDamping = 1f;
+        isDrifting = false;
+        Debug.Log("🛑 Drift terminé !");
     }
 }

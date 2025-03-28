@@ -61,10 +61,18 @@
     <Analyzer Include="C:\Program Files\Unity\Hub\Editor\6000.0.30f1\Editor\Data\Tools\Unity.SourceGenerators\Unity.UIToolkit.SourceGenerator.dll" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Assets\Script\ItemUI.cs" />
+    <Compile Include="Assets\Script\StarItem.cs" />
     <Compile Include="Assets\Script\KartCamera.cs" />
+    <Compile Include="Assets\Script\CheckPoint.cs" />
+    <Compile Include="Assets\Script\LapManager.cs" />
+    <Compile Include="Assets\Script\ItemRespawner.cs" />
     <Compile Include="Assets\Script\KartItem.cs" />
+    <Compile Include="Assets\Script\MushroomItem.cs" />
+    <Compile Include="Assets\Script\SplitScreenManager.cs" />
     <Compile Include="Assets\TutorialInfo\Scripts\Readme.cs" />
     <Compile Include="Assets\Script\KartMovement.cs" />
+    <Compile Include="Assets\Script\ItemEffect.cs" />
     <Compile Include="Assets\Script\ItemBox.cs" />
     <Compile Include="Assets\Script\TerrainEffect.cs" />
   </ItemGroup>
@@ -1232,6 +1240,10 @@
     </Reference>
     <Reference Include="Unity.VisualScripting.State">
       <HintPath>Library\ScriptAssemblies\Unity.VisualScripting.State.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Unity.2D.Sprite.Editor">
+      <HintPath>Library\ScriptAssemblies\Unity.2D.Sprite.Editor.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="Unity.AI.Navigation.Editor.ConversionSystem">
